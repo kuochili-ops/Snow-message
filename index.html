@@ -1,0 +1,838 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>𓃥 白六白雪訊息傳遞</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background: #080a0f;
+      color: #fff;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang TC", "Microsoft JhengHei", sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      user-select: none;
+    }
+
+    header {
+      position: absolute;
+      top: 20px;
+      width: 100%;
+      max-width: 400px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 20px;
+      z-index: 10;
+    }
+
+    h1 {
+      font-size: 1.15rem;
+      font-weight: 500;
+      letter-spacing: 2px;
+      color: #e0e6ed;
+      text-shadow: 0 2px 10px rgba(0,0,0,0.5);
+    }
+
+    .header-actions {
+      display: flex;
+      gap: 10px;
+    }
+
+    .btn-icon {
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      color: #fff;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 1.2rem;
+      transition: all 0.3s ease;
+      backdrop-filter: blur(5px);
+    }
+
+    .btn-icon:hover {
+      background: rgba(255, 255, 255, 0.25);
+      transform: scale(1.05);
+    }
+
+    .main-action {
+      position: absolute;
+      bottom: 25px;
+      z-index: 10;
+    }
+
+    .btn-flip {
+      background: linear-gradient(135deg, #2b323c, #1a1e24);
+      color: #fff;
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      padding: 10px 24px;
+      font-size: 0.95rem;
+      border-radius: 25px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5);
+    }
+
+    .btn-flip:hover {
+      background: linear-gradient(135deg, #3a4350, #242930);
+    }
+
+    /* 設定面板 */
+    .settings-panel {
+      position: fixed;
+      top: 0;
+      right: -320px;
+      width: 300px;
+      height: 100%;
+      background: rgba(18, 22, 30, 0.95);
+      backdrop-filter: blur(15px);
+      border-left: 1px solid rgba(255, 255, 255, 0.15);
+      box-shadow: -10px 0 30px rgba(0, 0, 0, 0.5);
+      z-index: 100;
+      padding: 25px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      transition: right 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+      overflow-y: auto;
+    }
+
+    .settings-panel.open {
+      right: 0;
+    }
+
+    .settings-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      padding-bottom: 10px;
+    }
+
+    .close-btn {
+      background: none;
+      border: none;
+      color: #8a99ad;
+      font-size: 1.4rem;
+      cursor: pointer;
+    }
+
+    .setting-item {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .setting-item label {
+      font-size: 0.85rem;
+      color: #a0aec0;
+    }
+
+    .option-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .option-btn {
+      padding: 8px 6px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: #ccc;
+      border-radius: 8px;
+      font-size: 0.8rem;
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.2s;
+    }
+
+    .option-btn.active {
+      background: #3b82f6;
+      border-color: #60a5fa;
+      color: #fff;
+    }
+
+    .btn-share {
+      background: linear-gradient(135deg, #2563eb, #1d4ed8);
+      color: #fff;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      padding: 10px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      transition: all 0.2s ease;
+      margin-top: 5px;
+    }
+
+    .btn-share:hover {
+      background: linear-gradient(135deg, #3b82f6, #2563eb);
+    }
+
+    textarea {
+      width: 100%;
+      height: 110px;
+      background: rgba(0, 0, 0, 0.3);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 8px;
+      padding: 8px;
+      color: #fff;
+      font-size: 0.85rem;
+      resize: none;
+      outline: none;
+    }
+
+    .hint-text {
+      font-size: 0.75rem;
+      color: #718096;
+    }
+
+    .overlay-mask {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0, 0, 0, 0.4);
+      z-index: 90;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.35s ease;
+    }
+
+    .overlay-mask.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    /* Toast 複製成功提示 */
+    .toast {
+      position: fixed;
+      top: 80px;
+      background: rgba(30, 41, 59, 0.95);
+      color: #38bdf8;
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      padding: 10px 20px;
+      border-radius: 20px;
+      font-size: 0.88rem;
+      z-index: 200;
+      opacity: 0;
+      transform: translateY(-10px);
+      transition: all 0.3s ease;
+      pointer-events: none;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* 3D 舞台 */
+    .stage {
+      perspective: 1200px;
+      width: 310px;
+      height: 460px;
+    }
+
+    .frame-wrapper {
+      width: 100%;
+      height: 100%;
+      position: relative;
+      transform-style: preserve-3d;
+      transform-origin: center center;
+    }
+
+    .frame {
+      width: 100%;
+      height: 100%;
+      border-radius: 20px;
+      border: 8px solid #1a1e26;
+      box-shadow: 0 30px 60px rgba(0, 0, 0, 0.9),
+                  inset 0 0 20px rgba(255, 255, 255, 0.15);
+      position: relative;
+      overflow: hidden;
+      background: radial-gradient(circle at 50% 30%, #151a24 0%, #06080c 100%);
+    }
+
+    canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+    }
+
+    .scene-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 2;
+    }
+
+    .scene-svg {
+      width: 100%;
+      height: 100%;
+    }
+
+    .lamp-glow {
+      position: absolute;
+      pointer-events: none;
+      border-radius: 50%;
+      mix-blend-mode: screen;
+      transition: all 0.3s;
+    }
+
+    .lamp-glow.style-a {
+      top: 135px; left: 100px; transform: translate(-50%, -50%);
+      width: 120px; height: 120px;
+      background: radial-gradient(circle, rgba(255, 220, 130, 0.9) 0%, rgba(255, 180, 50, 0.3) 45%, rgba(0, 0, 0, 0) 70%);
+    }
+
+    .lamp-glow.style-c {
+      top: 130px; left: 100px; transform: translate(-50%, -50%);
+      width: 160px; height: 120px;
+      background: radial-gradient(ellipse, rgba(255, 220, 130, 0.9) 0%, rgba(255, 180, 50, 0.25) 50%, rgba(0, 0, 0, 0) 70%);
+    }
+
+    .lamp-glow.style-d {
+      top: 110px; left: 100px; transform: translate(-50%, -50%);
+      width: 110px; height: 110px;
+      background: radial-gradient(circle, rgba(255, 240, 180, 0.95) 0%, rgba(255, 200, 100, 0.3) 50%, rgba(0, 0, 0, 0) 70%);
+    }
+
+    .snow-ground-container {
+      position: absolute;
+      bottom: 0;
+      width: 100%;
+      height: 130px;
+      z-index: 3;
+      pointer-events: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 15px 4px 10px 4px;
+    }
+
+    .snow-ground-bg {
+      position: absolute;
+      bottom: 0;
+      width: 100%;
+      height: 120px;
+      background: linear-gradient(to top, rgba(240, 245, 255, 0.98) 0%, rgba(225, 235, 248, 0.92) 80%, rgba(240, 245, 255, 0) 100%);
+      z-index: -1;
+    }
+
+    .snow-text {
+      color: #2c3e50;
+      font-weight: 900;
+      text-align: center;
+      line-height: 1.25;
+      letter-spacing: 0.5px;
+      
+      word-break: keep-all;
+      overflow-wrap: break-word;
+      white-space: normal;
+      width: 100%;
+
+      text-shadow: 
+        0px -2px 1px rgba(10, 15, 30, 0.85),
+        -1px -1px 2px rgba(15, 23, 42, 0.7),
+        1px 1px 1px rgba(255, 255, 255, 0.95),
+        0px 2px 2px rgba(255, 255, 255, 1);
+      transition: opacity 0.4s, transform 0.4s;
+      filter: drop-shadow(0px 1.5px 1px rgba(0, 0, 0, 0.25));
+    }
+
+    .glass-reflection {
+      position: absolute;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: linear-gradient(125deg, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0.03) 25%, transparent 50%, rgba(255, 255, 255, 0.12) 100%);
+      z-index: 4;
+      pointer-events: none;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>𓃥 白六白雪訊息傳遞</h1>
+    <div class="header-actions">
+      <button class="btn-icon" id="shareBtn" title="分享專屬連結">🔗</button>
+      <button class="btn-icon" id="openSettingsBtn" title="設定">⚙️</button>
+    </div>
+  </header>
+
+  <div class="overlay-mask" id="overlayMask"></div>
+  <div class="toast" id="toast">連結已複製！發送給朋友吧 💌</div>
+
+  <!-- 設定選單 -->
+  <div class="settings-panel" id="settingsPanel">
+    <div class="settings-header">
+      <h2>設置偏好</h2>
+      <button class="close-btn" id="closeSettingsBtn">✕</button>
+    </div>
+
+    <div class="setting-item">
+      <label>路燈造型款</label>
+      <div class="option-grid">
+        <button class="option-btn active" data-style="A">經典復古</button>
+        <button class="option-btn" data-style="B">懸臂聚光</button>
+        <button class="option-btn" data-style="C">雙頭歐式</button>
+        <button class="option-btn" data-style="D">極簡圓球</button>
+      </div>
+    </div>
+
+    <div class="setting-item">
+      <label>換頁隨機變換路燈</label>
+      <div class="option-grid">
+        <button class="option-btn" id="randomLampOn">開啟</button>
+        <button class="option-btn active" id="randomLampOff">關閉</button>
+      </div>
+    </div>
+
+    <div class="setting-item">
+      <label>輪播訊息（每一行是一頁）</label>
+      <textarea id="msgInput" placeholder="每一行代表一頁訊息...">大家好
+祝大家身體健康
+闔家平安</textarea>
+      <span class="hint-text">提示：按 Enter 換行即為下一頁；字數越少字體自動放大佔滿雪層！</span>
+    </div>
+
+    <div class="setting-item">
+      <label>自動輪播模式</label>
+      <div class="option-grid">
+        <button class="option-btn active" id="autoLoopOn">開啟（落盡即翻轉）</button>
+        <button class="option-btn" id="autoLoopOff">關閉</button>
+      </div>
+    </div>
+
+    <button class="btn-share" id="panelShareBtn">🔗 複製專屬分享連結</button>
+  </div>
+
+  <!-- 主舞台 -->
+  <div class="stage">
+    <div class="frame-wrapper" id="frameWrapper">
+      <div class="frame">
+        <canvas id="snowCanvas"></canvas>
+        
+        <div class="scene-overlay">
+          <div class="lamp-glow style-a" id="lampGlow"></div>
+          
+          <svg class="scene-svg" viewBox="0 0 300 450" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="metalArm" x1="0" y1="0" x2="1" y2="0">
+                <stop offset="0%" stop-color="#12151b"/><stop offset="50%" stop-color="#3d4654"/><stop offset="100%" stop-color="#181c24"/>
+              </linearGradient>
+              <linearGradient id="shadeCap" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#404958"/><stop offset="100%" stop-color="#1a1e26"/>
+              </linearGradient>
+            </defs>
+
+            <!-- 款式 A：經典復古 -->
+            <g id="lampStyleA">
+              <path d="M 90 380 L 110 380 L 105 340 L 102 180 L 98 180 L 95 340 Z" fill="#181b20" stroke="#333"/>
+              <polygon points="85,150 115,150 120,120 80,120" fill="url(#shadeCap)" stroke="#4a5260"/>
+              <circle cx="100" cy="135" r="8" fill="#fff5cc"/>
+            </g>
+
+            <!-- 款式 B：懸臂聚光 -->
+            <g id="lampStyleB" style="display: none;">
+              <path d="M 58 380 L 68 380 L 66 160 Q 66 85 122 85 L 126 85" fill="none" stroke="url(#metalArm)" stroke-width="5" stroke-linecap="round"/>
+              <path d="M 105 85 Q 122 75 140 85 L 145 98 L 100 98 Z" fill="url(#shadeCap)"/>
+              <ellipse cx="122.5" cy="98" rx="18" ry="4.5" fill="#ffffff"/>
+            </g>
+
+            <!-- 款式 C：雙頭歐式 -->
+            <g id="lampStyleC" style="display: none;">
+              <path d="M 92 380 L 108 380 L 104 180 L 96 180 Z" fill="#181b20"/>
+              <path d="M 60 160 Q 100 130 100 180 Q 100 130 140 160" fill="none" stroke="url(#metalArm)" stroke-width="4"/>
+              <polygon points="48,150 72,150 76,130 44,130" fill="url(#shadeCap)"/>
+              <circle cx="60" cy="140" r="6" fill="#fff5cc"/>
+              <polygon points="128,150 152,150 156,130 124,130" fill="url(#shadeCap)"/>
+              <circle cx="140" cy="140" r="6" fill="#fff5cc"/>
+            </g>
+
+            <!-- 款式 D：極簡圓球 -->
+            <g id="lampStyleD" style="display: none;">
+              <path d="M 97 380 L 103 380 L 102 135 L 98 135 Z" fill="url(#metalArm)"/>
+              <circle cx="100" cy="110" r="22" fill="url(#shadeCap)"/>
+              <circle cx="100" cy="110" r="18" fill="#fff8d6"/>
+            </g>
+
+            <!-- 木質長椅構造 -->
+            <g>
+              <rect x="170" y="295" width="85" height="7" rx="2" fill="#7c5235" stroke="#422919" stroke-width="1"/>
+              <rect x="170" y="306" width="85" height="7" rx="2" fill="#7c5235" stroke="#422919" stroke-width="1"/>
+              <rect x="170" y="320" width="85" height="8" rx="2" fill="#6a4329" stroke="#362013" stroke-width="1"/>
+              <path d="M 178 328 L 178 358 M 247 328 L 247 358" stroke="#121418" stroke-width="4" stroke-linecap="round"/>
+              <path d="M 178 358 L 173 372 M 247 358 L 252 372" stroke="#121418" stroke-width="3.5" stroke-linecap="round"/>
+              <path d="M 176 295 L 176 328 M 249 295 L 249 328" stroke="#121418" stroke-width="3"/>
+            </g>
+
+            <!-- 底層雪地 -->
+            <path d="M 0 350 Q 150 340 300 350 L 300 450 L 0 450 Z" fill="rgba(240, 245, 255, 0.95)"/>
+          </svg>
+        </div>
+
+        <div class="snow-ground-container">
+          <div class="snow-ground-bg"></div>
+          <div class="snow-text" id="snowText">大家好</div>
+        </div>
+
+        <div class="glass-reflection"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="main-action">
+    <button class="btn-flip" id="flipBtn">🔄 手動翻轉</button>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('snowCanvas');
+    const ctx = canvas.getContext('2d');
+    const frameWrapper = document.getElementById('frameWrapper');
+    const flipBtn = document.getElementById('flipBtn');
+    const snowText = document.getElementById('snowText');
+
+    const openSettingsBtn = document.getElementById('openSettingsBtn');
+    const closeSettingsBtn = document.getElementById('closeSettingsBtn');
+    const settingsPanel = document.getElementById('settingsPanel');
+    const overlayMask = document.getElementById('overlayMask');
+    const msgInput = document.getElementById('msgInput');
+    const toast = document.getElementById('toast');
+
+    const shareBtn = document.getElementById('shareBtn');
+    const panelShareBtn = document.getElementById('panelShareBtn');
+
+    const width = 300;
+    const height = 450;
+    canvas.width = width;
+    canvas.height = height;
+
+    const PARTICLE_COUNT = 700;
+    const particles = [];
+    let isFlipping = false;
+    let autoLoop = true;
+    let randomLamp = false;
+    let currentStyle = 'A';
+    
+    let messages = [];
+    let currentMsgIndex = 0;
+
+    openSettingsBtn.addEventListener('click', () => {
+      settingsPanel.classList.add('open');
+      overlayMask.classList.add('active');
+    });
+
+    function closeSettings() {
+      settingsPanel.classList.remove('open');
+      overlayMask.classList.remove('active');
+      updateMessages();
+    }
+
+    closeSettingsBtn.addEventListener('click', closeSettings);
+    overlayMask.addEventListener('click', closeSettings);
+
+    function updateMessages() {
+      const lines = msgInput.value.split('\n').map(l => l.trim()).filter(l => l !== '');
+      messages = lines.length > 0 ? lines : ['𓃥 白六白雪'];
+      if (currentMsgIndex >= messages.length) currentMsgIndex = 0;
+      displayCurrentMessage();
+    }
+
+    function formatTextForPage(text) {
+      if (!/[a-zA-Z]/.test(text) && text.length <= 8) return text;
+
+      const words = text.split(' ');
+      if (words.length <= 1) {
+        if (text.length > 8 && text.length <= 14) {
+          const mid = Math.ceil(text.length / 2);
+          return text.slice(0, mid) + '<br>' + text.slice(mid);
+        }
+        return text;
+      }
+
+      let lines = [];
+      let currentLine = '';
+
+      words.forEach(word => {
+        if ((currentLine + ' ' + word).trim().length <= 14) {
+          currentLine = (currentLine + ' ' + word).trim();
+        } else {
+          if (currentLine) lines.push(currentLine);
+          currentLine = word;
+        }
+      });
+      if (currentLine) lines.push(currentLine);
+
+      return lines.join('<br>');
+    }
+
+    function displayCurrentMessage() {
+      const rawText = messages[currentMsgIndex] || '';
+      const formattedHTML = formatTextForPage(rawText);
+      snowText.innerHTML = formattedHTML;
+
+      const lineCount = formattedHTML.split('<br>').length;
+      const totalLen = rawText.length;
+
+      let fontSize = 38;
+
+      if (totalLen <= 4) {
+        fontSize = 38;
+      } else if (totalLen <= 7) {
+        fontSize = 32;
+      } else if (totalLen <= 11) {
+        fontSize = 26;
+      } else if (totalLen <= 20) {
+        fontSize = 21;
+      } else {
+        fontSize = 17;
+      }
+
+      if (lineCount === 2 && fontSize > 26) fontSize = 26;
+      if (lineCount >= 3) fontSize = 18;
+
+      snowText.style.fontSize = fontSize + 'px';
+    }
+
+    function setLampStyle(style) {
+      currentStyle = style;
+      document.querySelectorAll('[data-style]').forEach(b => {
+        b.classList.toggle('active', b.dataset.style === style);
+      });
+
+      ['A','B','C','D'].forEach(s => {
+        document.getElementById(`lampStyle${s}`).style.display = (s === currentStyle) ? 'block' : 'none';
+      });
+
+      const lampGlow = document.getElementById('lampGlow');
+      lampGlow.className = `lamp-glow style-${currentStyle.toLowerCase()}`;
+      lampGlow.style.display = (currentStyle === 'B') ? 'none' : 'block';
+    }
+
+    document.querySelectorAll('[data-style]').forEach(btn => {
+      btn.addEventListener('click', () => setLampStyle(btn.dataset.style));
+    });
+
+    document.getElementById('randomLampOn').addEventListener('click', function() {
+      randomLamp = true;
+      this.classList.add('active');
+      document.getElementById('randomLampOff').classList.remove('active');
+    });
+
+    document.getElementById('randomLampOff').addEventListener('click', function() {
+      randomLamp = false;
+      this.classList.add('active');
+      document.getElementById('randomLampOn').classList.remove('active');
+    });
+
+    document.getElementById('autoLoopOn').addEventListener('click', function() {
+      autoLoop = true;
+      this.classList.add('active');
+      document.getElementById('autoLoopOff').classList.remove('active');
+    });
+
+    document.getElementById('autoLoopOff').addEventListener('click', function() {
+      autoLoop = false;
+      this.classList.add('active');
+      document.getElementById('autoLoopOn').classList.remove('active');
+    });
+
+    // 🔗 產生與複製專屬分享連結 (URL Hash)
+    function copyShareLink() {
+      const data = {
+        m: msgInput.value,
+        s: currentStyle,
+        a: autoLoop ? 1 : 0,
+        r: randomLamp ? 1 : 0
+      };
+      const encoded = encodeURIComponent(JSON.stringify(data));
+      const shareUrl = `${window.location.origin}${window.location.pathname}#msg=${encoded}`;
+
+      navigator.clipboard.writeText(shareUrl).then(() => {
+        showToast('連結已複製！發送給朋友吧 💌');
+      }).catch(() => {
+        showToast('複製失敗，請手動複製網址');
+      });
+    }
+
+    function showToast(msg) {
+      toast.innerText = msg;
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 2500);
+    }
+
+    shareBtn.addEventListener('click', copyShareLink);
+    panelShareBtn.addEventListener('click', copyShareLink);
+
+    // 解析 URL 中的分享資料
+    function loadShareDataFromURL() {
+      if (!window.location.hash) return;
+      try {
+        const hashParams = new URLSearchParams(window.location.hash.substring(1));
+        const encodedData = hashParams.get('msg');
+        if (encodedData) {
+          const data = JSON.parse(decodeURIComponent(encodedData));
+          if (data.m) msgInput.value = data.m;
+          if (data.s) setLampStyle(data.s);
+          if (typeof data.a !== 'undefined') {
+            autoLoop = data.a === 1;
+            document.getElementById('autoLoopOn').classList.toggle('active', autoLoop);
+            document.getElementById('autoLoopOff').classList.toggle('active', !autoLoop);
+          }
+          if (typeof data.r !== 'undefined') {
+            randomLamp = data.r === 1;
+            document.getElementById('randomLampOn').classList.toggle('active', randomLamp);
+            document.getElementById('randomLampOff').classList.toggle('active', !randomLamp);
+          }
+        }
+      } catch (e) {
+        console.error("無效的分享連結", e);
+      }
+    }
+
+    // 粒子系統
+    class Particle {
+      constructor() {
+        this.reset(true);
+      }
+
+      reset(randomY = false) {
+        this.x = Math.random() * width;
+        this.y = randomY ? Math.random() * height : -Math.random() * 60;
+        this.vx = (Math.random() - 0.5) * 0.4;
+        
+        const depth = Math.random();
+        this.size = depth * 1.8 + 0.6;
+        this.vy = (depth * 0.9 + 0.4);
+        this.alpha = depth * 0.7 + 0.2;
+        this.sway = Math.random() * 0.03;
+        this.settled = false;
+      }
+
+      update() {
+        if (this.settled) return;
+
+        this.vx += Math.sin(Date.now() * 0.002 + this.y) * this.sway;
+        this.x += this.vx;
+        this.y += this.vy;
+
+        if (this.x < 0) this.x = width;
+        if (this.x > width) this.x = 0;
+
+        if (this.y >= height - 25 - Math.random() * 10) {
+          this.settled = true;
+        }
+      }
+
+      draw() {
+        ctx.save();
+        ctx.fillStyle = `rgba(255, 255, 255, ${this.alpha})`;
+        ctx.shadowBlur = this.size * 2;
+        ctx.shadowColor = 'rgba(255, 255, 255, 0.8)';
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      }
+    }
+
+    for (let i = 0; i < PARTICLE_COUNT; i++) {
+      particles.push(new Particle());
+    }
+
+    function animate() {
+      ctx.clearRect(0, 0, width, height);
+
+      if (currentStyle === 'B') {
+        ctx.save();
+        const gradient = ctx.createLinearGradient(122, 98, 122, 380);
+        gradient.addColorStop(0, 'rgba(255, 235, 170, 0.45)');
+        gradient.addColorStop(0.4, 'rgba(255, 190, 80, 0.18)');
+        gradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
+        
+        ctx.beginPath();
+        ctx.moveTo(104, 98); ctx.lineTo(140, 98); ctx.lineTo(235, 380); ctx.lineTo(10, 380);
+        ctx.closePath();
+        ctx.fillStyle = gradient;
+        ctx.fill();
+        ctx.restore();
+      }
+
+      let allSettled = true;
+      particles.forEach(p => {
+        p.update();
+        p.draw();
+        if (!p.settled) allSettled = false;
+      });
+
+      if (allSettled && !isFlipping && autoLoop) {
+        triggerFlipX();
+      }
+
+      requestAnimationFrame(animate);
+    }
+
+    function triggerFlipX() {
+      if (isFlipping) return;
+      isFlipping = true;
+
+      snowText.style.opacity = '0';
+
+      frameWrapper.style.transition = 'transform 1.8s cubic-bezier(0.45, 0.05, 0.55, 0.95)';
+      frameWrapper.style.transform = 'rotateX(360deg)';
+
+      setTimeout(() => {
+        currentMsgIndex = (currentMsgIndex + 1) % messages.length;
+        displayCurrentMessage();
+        snowText.style.opacity = '1';
+
+        if (randomLamp) {
+          const styles = ['A', 'B', 'C', 'D'];
+          const nextStyle = styles[Math.floor(Math.random() * styles.length)];
+          setLampStyle(nextStyle);
+        }
+
+        particles.forEach(p => {
+          p.settled = false;
+          p.x = Math.random() * width;
+          p.y = -Math.random() * 150;
+        });
+      }, 900);
+
+      setTimeout(() => {
+        frameWrapper.style.transition = 'none';
+        frameWrapper.style.transform = 'rotateX(0deg)';
+        isFlipping = false;
+      }, 1800);
+    }
+
+    flipBtn.addEventListener('click', triggerFlipX);
+
+    loadShareDataFromURL();
+    updateMessages();
+    animate();
+  </script>
+</body>
+</html>
